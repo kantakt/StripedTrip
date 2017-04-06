@@ -22,7 +22,7 @@ public class StripedTrip {
     List<Vehicle> closedPolygon = new ArrayList<>();
     int N = 2147483647;
     int M = 2147483647;
-    //
+    ////
     
     @Command // vehicle
     public String vehicle(int id, int x, int y, int v ){
