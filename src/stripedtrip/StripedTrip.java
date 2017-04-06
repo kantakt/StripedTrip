@@ -19,68 +19,67 @@ import java.util.stream.Collectors;
  * @author aleksandr
  */
 public class StripedTrip {
-    List<Vehicle> closedPolygon = new ArrayList<Vehicle>();
+    List<Vehicle> closedPolygon = new ArrayList<>();
+    int N = 2147483647;
+    int M = 2147483647;
+    
     
     @Command // vehicle
     public String vehicle(int id, int x, int y, int v ){
+        if(x < 0 || x > N || y < 0 || y > M){
+            return "fail - vehicle not in bounds";
+        }
         // Проверяем есть ли уже автомобиль с таким id
            List<Vehicle> result = closedPolygon.stream()
             .filter(item -> item.id == id)
             .collect(Collectors.toList());
             // Такой автомобиль уже есть
             if(result.size() > 0){
-             return "fail";
+             return "fail - there is a vehicle with the same id";
             } else {
              // Нет создаём новый
              Vehicle newVehicle = new Vehicle(id, x,y, v, true);
              closedPolygon.add(newVehicle);
              return "ok";   
             }
-         
-         
-
     }
     
     @Command // checkpoint
     public String checkpoint(int veh_id, int order, int time, int x, int y){
       try{ 
         List<Vehicle> result = closedPolygon.stream()
-     .filter(item -> item.id == veh_id)
-     .collect(Collectors.toList());
+        .filter(item -> item.id == veh_id)
+        .collect(Collectors.toList());
         
-        
-        if(result.size() == 0){
+        if(result.isEmpty()){
             return "fail";
         }
-        
       
         CheckPoint checkPoint = new CheckPoint();
         checkPoint.x = x;
         checkPoint.y = y;
-        // Здесь - расчёт времени
         checkPoint.t = time;
-        result.get(0).addCheckpoint(order, checkPoint);
-        
-        
+        // Нажимаем добавить cp - в ней расчёт времени остановки
+        if(result.get(0).addCheckpoint(order, checkPoint))
+            return "ok";
+        else 
+            return "fail"; 
       } catch (Exception e){
           return "fail";
       }
-        
-        
-        return "ok";
     }
 
     void stripedTrip(){
         closedPolygon = new ArrayList<Vehicle>();
-        Vehicle testVehicle = new Vehicle(0, 0, 0, 100, true);
     }
     
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-        ShellFactory.createConsoleShell("hello", "", new StripedTrip())
+        ShellFactory.createConsoleShell("StripedTrip", "", new StripedTrip())
             .commandLoop(); // and three.
          
     } 

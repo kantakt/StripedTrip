@@ -14,6 +14,7 @@ public class CheckPoint {
     int order;
     // secs. from global start
     int t;
+    int stop_time;
    void CheckPoint(int x, int y, int order){
        this.x = x;
        this.y = y;
