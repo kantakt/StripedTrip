@@ -39,99 +39,45 @@ import java.util.List;
         
         public boolean addCheckpoint(int order, CheckPoint checkPoint){
             try {
-                if(this.checkpoints.size() == order){
-                    System.out.println("Dobavlenie v konec spiska");
-                    // Это первая после init точка
-                    if(order == 0  ){
-                        System.out.println("Add 1st cp:");
-                             
-                        int x1 = this.posX;
-                        int x2 = checkPoint.x;
-                        
-                        int y1 = this.posY;
-                        int y2 = checkPoint.y;
-                        
-                        double time = path_time(x1, x2, y1, y2, this.speed);
-                        
-                        this.time_stop =  (checkPoint.t - time);
-                        if(this.time_stop < 0){
-                             System.out.println("fail. User input time less then calculated time.");
-                             return false;
-                        } else {
-                            System.out.println("time_stop: "+this.time_stop);
+                    // Слишком большое значение order - ошибка
+                    if(order > this.checkpoints.size()){
+                        System.out.println("error. order is too big.");
+                        return false;
+                    }
+                    if(order == 0){
+                        double cur_time = path_time(this.posX, checkPoint.x, this.posY, checkPoint.y, this.speed);
+                        double wait_time = checkPoint.t - cur_time;
+                        if(wait_time < 0) {
+                            System.out.println("Stop_time must be bigger than driving min time.");
+                            return false;
+                        }
+                            this.time_stop = wait_time;
                             this.checkpoints.add(order, checkPoint);
-                            return true;
-                        }
-                        // Точка добавляеться уже после 1-й заданной точки, значит
-                        // надо вычеслить относительное время из "от общего старта".
-                    } else if (order>0) { 
-                        System.out.println("Add next cp:");
-                        
-                        int x1 = this.checkpoints.get(order-1).x;
-                        int x2 = checkPoint.x;
-                            
-                        int y1 = this.checkpoints.get(order-1).y;
-                        int y2 = checkPoint.y;
-                      
-                        double time = path_time(x1, x2, y1, y2, this.speed);
-                     
-                        // Вычисляем time
-                        int calc_time = this.checkpoints.get(order).t - this.checkpoints.get(order-1).t;
-                        
-                        
-                        double tmp_time = this.checkpoints.get(order-1).stop_time;
-                        this.checkpoints.get(order-1).stop_time =  (calc_time - time);
-                        if(this.checkpoints.get(order-1).stop_time<0){
-                            //this.checkpoints.remove(order-1);
-                            // Если данные введены не корректно, то возвращаем прежнее значение.
-                            this.checkpoints.get(order-1).stop_time = tmp_time;
-                            System.out.println("fail. Checkpoint\'s stop_time: must be highter then 0");
+                            System.out.println("Time to wait: " + this.time_stop);
+                    } else {
+                        double cur_time = path_time(this.checkpoints.get(order-1).x, checkPoint.x,
+                                                    this.checkpoints.get(order-1).y, checkPoint.y, this.speed);
+                        double wait_time = checkPoint.t - cur_time;
+                        if(wait_time < 0) {
+                            System.out.println("Stop_time must be bigger than driving min time.");
                             return false;
-                         } 
-                        this.checkpoints.add(order, checkPoint);
-                        
-                        System.out.println("time_stop: "+this.checkpoints.get(order-1).stop_time);
+                        }
+                            this.checkpoints.get(order-1).stop_time = wait_time;
+                            this.checkpoints.add(order, checkPoint);              
+                            System.out.println("Time to wait: " + this.checkpoints.get(order-1).stop_time);
                     }
-                    
-                    // You need to calculate 1 more current point
-                    if((this.checkpoints.size()-1) > order){
-                        System.out.println("size(): "+this.checkpoints.size() + " order: "+ order);
-                        System.out.println("Current calculation ..."); 
-                        // Добавляем проверку на "превышение" времени от общего старта, если посредине время
-                        // больше чем у след. точки                     
-                        if(checkPoint.t > this.checkpoints.get(order+1).t){
-                            System.out.println("Fail. You must enter time values in a sequence order");
-                            return false;
-                        }
-                        int x2 = this.checkpoints.get(order+1).x;
-                        int x1 = this.checkpoints.get(order).x;
-                        
-                        int y2 = this.checkpoints.get(order+1).y;
-                        int y1 = this.checkpoints.get(order).y;
-                        
-                        double time = path_time(x1, x2, y1, y2, this.speed);
-                       
-                        double calc_time = this.checkpoints.get(order+1).t - checkPoint.t ;
-
-                        if(calc_time<time){
-                            System.out.println("fail. User input time less then calculated time.");
-                            return false;
-                        }
-                        this.checkpoints.get(order).stop_time = calc_time-time;
-                        System.out.println("Current stop_time: "+this.checkpoints.get(order).stop_time);
-                        return true;
+                    // Добавление в середину
+                    if(order!=(this.checkpoints.size()-1)){
+                        double cur_time = path_time(this.checkpoints.get(order).x, this.checkpoints.get(order+1).x,
+                                                    this.checkpoints.get(order).y, this.checkpoints.get(order+1).y, this.speed);
+                        // TODO - перепроверить
+                        this.checkpoints.get(order).stop_time = this.checkpoints.get(order+1).stop_time - cur_time;
+                        System.out.println("Time to wait for current checkpoint: " + this.checkpoints.get(order).stop_time);
                     }
-                    
-                } else if (this.checkpoints.size()>order) {
-                    System.out.println("Dobavlenie v seredinu spiska");
-                } else {
-                    System.out.println("fail. Please add points without spaces.");
-                }
-                 this.checkpoints.add(order, checkPoint);
-                
                 }
             catch(Exception e) {
-                
+                System.out.println(e.toString());
+                return false;
                 }
             return true;
         }
